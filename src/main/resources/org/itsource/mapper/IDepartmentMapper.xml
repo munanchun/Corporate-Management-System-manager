@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+
+<mapper namespace="org.itsource.mapper.IDepartmentMapper">
+    <insert id="insert"> insert into t_department (sn,name,dirPath,state,manager_id,parent_id) values (#{sn},#{name},#{dirPath},#{state},#{manager_id},#{parent_id}) </insert>
+    <update id="update"> update t_department set sn=#{sn},name=#{name},dirPath=#{dirPath},state=#{state}, manager_id=#{manager_id},parent_id=#{parent_id} where id=#{id} </update>
+    <delete id="deletById"> delete from t_department where id=#{id} </delete>
+    <delete id="batchDelete">
+        delete from t_department where id in
+        <foreach collection="list" separator="," item="id" open="(" close=")"> #{id} </foreach>
+    </delete>
+    <select id="selectAll" resultType="org.itsource.domain.Department"> select * from t_department </select>
+    <select id="selectById" resultType="org.itsource.domain.Department"> select * from t_department where id=#{id} </select>
+    <select id="selectByPage" resultMap="HyjSql">
+        SELECT d.*,e.id as eid,e.username,d1.id as did,d1.name as dname FROM t_department as d LEFT JOIN t_employee as e on d.manager_id=e.id LEFT JOIN t_department d1 on d.parent_id=d1.id
+        <where>
+            <if test="keyword!=null and keyword!=''"> name like concat('%',#{keyword},'%') </if>
+        </where>
+        limit #{start},#{pageSize}
+    </select>
+    <resultMap id="HyjSql" type="org.itsource.domain.Department">
+        <!-- 手动映射SQL语句关联字段 映射除id映射为id 其他都为result标签 -->
+        <id column="id" property="id"/>
+        <result column="sn" property="sn"/>
+        <result column="name" property="name"/>
+        <result column="dirPath" property="dirPath"/>
+        <result column="state" property="state"/>
+        <result column="manager_id" property="manager_id"/>
+        <result column="parent_id" property="parent_id"/>
+        <!-- 其他表association标签 property代表映射对象 -->
+        <association property="manager" javaType="org.itsource.domain.Employee">
+            <id column="eid" property="id"/>
+            <result column="username" property="username"/>
+        </association>
+        <association property="parent" javaType="org.itsource.domain.Department">
+            <id column="did" property="id"/>
+            <result column="dname" property="name"/>
+        </association>
+    </resultMap>
+    <select id="count" resultType="java.lang.Integer"> select count(id)from t_department </select>
+    <select id="selectByUsername" resultType="org.itsource.domain.Employee"> select * from t_employee where username=#{username} </select>
+</mapper>
